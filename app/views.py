@@ -10,7 +10,8 @@ import requests
 import datetime
 
 # Custom imports
-from app.send_email_birthday_anniversary import BirthdayEmail, WorkAnniversaryEmail
+from app.send_email_birthday_anniversary import BirthdayEmail
+from app.models import BirthdayTracker
 
 
 def employees_api(request):
@@ -66,11 +67,16 @@ def send_employee_an_email(_employee):
     today = str(datetime.datetime.now())[:10]
     today_month = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%m')
     today_day = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%d')
+    send_year = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%Y')
 
     if str(birth_month) + '-' + str(birth_day) == str(today_month) + '-' + str(today_day):
-        a = BirthdayEmail(first_name=_employee['name'], last_name=_employee['lastname'])
-        a.send_email()
-
-    if str(work_start_month) + '-' + str(work_start_day) == str(today_month) + '-' + str(today_day):
-        b = WorkAnniversaryEmail(first_name=_employee['name'], last_name=_employee['lastname'])
-        b.send_email()
+        # Check if email was send already
+        employee_id = _employee['id']
+        try:
+            BirthdayTracker.objects.get(employee_id=employee_id, email_send_year=send_year)
+            print("Email was sent before")
+        except BirthdayTracker.DoesNotExist:
+            print('Email was not send before, send now')
+            birthday_wish = BirthdayEmail(first_name=_employee['name'], last_name=_employee['lastname'],
+                                          employee_id=_employee['id'], today=today)
+            birthday_wish.send_email()
