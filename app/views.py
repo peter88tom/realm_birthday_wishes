@@ -34,7 +34,14 @@ def employees_api(request):
 
     employee_extraction(employees, configure_employees)
 
-    return render(request, 'app/index.html')
+    # Get list of all birthday wishes sent today
+    today = str(datetime.datetime.now())[:10]
+    today_day = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%d')
+    sent_today = BirthdayTracker.objects.filter(email_send_day=today_day)
+
+    return render(request, 'app/index.html', {
+      'email_sent_today': sent_today.count()
+    })
 
 
 def employee_extraction(employees, configure_employees):
@@ -57,12 +64,8 @@ def employee_extraction(employees, configure_employees):
 
 def send_employee_an_email(_employee):
     # Birthdate
-    birth_month = '04' # (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%m')
-    birth_day = '04' # (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%d')
-
-    # Work anniversary
-    work_start_month = (datetime.datetime.strptime((_employee['employmentStartDate'])[:10], "%Y-%m-%d")).strftime('%m')
-    work_start_day = (datetime.datetime.strptime((_employee['employmentStartDate'])[:10], "%Y-%m-%d")).strftime('%d')
+    birth_month = (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%m')
+    birth_day = (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%d')
 
     today = str(datetime.datetime.now())[:10]
     today_month = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%m')
