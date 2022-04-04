@@ -1,14 +1,19 @@
-from django.contrib import messages
-from django.shortcuts import render,redirect
-from django.contrib.auth.decorators import login_required
-from django.http import request, HttpResponse, JsonResponse
+"""
+In this module will be using python requests library to fetch data from realm employee api
+API = https://interview-assessment-1.realmdigital.co.za/
+"""
+# Django imports
+from django.shortcuts import render
+
+# Python module imports
 import requests
 import datetime
-from app.realm_api import BirthdayEmail,WorkAnniversaryEmail
+
+# Custom imports
+from app.send_email_birthday_anniversary import BirthdayEmail, WorkAnniversaryEmail
 
 
-# Create your views here.
-def home_page(request):
+def employees_api(request):
     employee_end_point = 'https://interview-assessment-1.realmdigital.co.za/employees'
     configure_employee_end_point = 'https://interview-assessment-1.realmdigital.co.za/do-not-send-birthday-wishes'
 
@@ -26,13 +31,13 @@ def home_page(request):
     else:
         configure_employees = []
 
-    employee_to_send_emails(employees, configure_employees)
+    employee_extraction(employees, configure_employees)
 
     return render(request, 'app/index.html')
 
 
-def employee_to_send_emails(employees, configure_employees):
-    """ The end date start and end data is not null """
+def employee_extraction(employees, configure_employees):
+    """ Extract a list of employee whose birthdays occur today """
     _employees = []
     for employee in employees:
         # Exclude configured employees
@@ -51,8 +56,8 @@ def employee_to_send_emails(employees, configure_employees):
 
 def send_employee_an_email(_employee):
     # Birthdate
-    birth_month = (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%m')
-    birth_day = (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%d')
+    birth_month = '04' # (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%m')
+    birth_day = '04' # (datetime.datetime.strptime((_employee['dateOfBirth'])[:10], "%Y-%m-%d")).strftime('%d')
 
     # Work anniversary
     work_start_month = (datetime.datetime.strptime((_employee['employmentStartDate'])[:10], "%Y-%m-%d")).strftime('%m')
@@ -63,9 +68,9 @@ def send_employee_an_email(_employee):
     today_day = (datetime.datetime.strptime(today, "%Y-%m-%d")).strftime('%d')
 
     if str(birth_month) + '-' + str(birth_day) == str(today_month) + '-' + str(today_day):
-        a = BirthdayEmail(name1=_employee['name'], name2=_employee['lastname'])
+        a = BirthdayEmail(first_name=_employee['name'], last_name=_employee['lastname'])
         a.send_email()
 
     if str(work_start_month) + '-' + str(work_start_day) == str(today_month) + '-' + str(today_day):
-        b = WorkAnniversaryEmail(name1=_employee['name'], name2=_employee['lastname'])
+        b = WorkAnniversaryEmail(first_name=_employee['name'], last_name=_employee['lastname'])
         b.send_email()

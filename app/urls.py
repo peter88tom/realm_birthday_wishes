@@ -3,5 +3,5 @@ from app import views
 from django.urls import path
 
 urlpatterns = [
-  path('', views.home_page, name='main-index'),
+  path('', views.employees_api, name='main-index'),
 ]
